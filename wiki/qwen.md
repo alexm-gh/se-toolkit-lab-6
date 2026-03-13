@@ -144,7 +144,7 @@ The file must be non-empty.
 
 ### Set up the `Qwen Code` API (remote machine)
 
-> [`qwen-code-oai-proxy`](https://github.com/aptdnfapt/qwen-code-oai-proxy) exposes [`Qwen Code`](#what-is-qwen-code) through an [OpenAI-compatible API](./llm.md#openai-compatible-api) so that other tools can use it as an [LLM](./llm.md#what-is-an-llm).
+> [`qwen-code-oai-proxy`](https://github.com/inno-se-toolkit/qwen-code-oai-proxy) exposes [`Qwen Code`](#what-is-qwen-code) through an [OpenAI-compatible API](./llm.md#openai-compatible-api) so that other tools can use it as an [LLM](./llm.md#what-is-an-llm).
 
 1. [Set up the `Qwen Code` CLI (remote machine)](#set-up-the-qwen-code-cli-remote-machine).
 
