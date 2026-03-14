@@ -9,8 +9,8 @@ from pathlib import Path
 def test_agent_returns_valid_json() -> None:
     """Test that agent.py outputs valid JSON with required fields."""
     # Get the project root directory
-    project_root = Path(__file__).parent.parent.parent.parent
-    
+    project_root = Path(__file__).parent.parent
+
     # Run agent.py as a subprocess
     result = subprocess.run(
         [
