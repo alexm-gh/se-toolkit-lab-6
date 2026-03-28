@@ -339,6 +339,7 @@ class AgentState:
         ]
         self.tool_calls_log: list[dict[str, Any]] = []
         self.last_file_read: str | None = None
+        self.consecutive_reads = 0  # Track consecutive read_file calls
 
     def add_assistant_response(self, content: str | None, tool_calls: list | None) -> None:
         """Add assistant message to history."""
@@ -368,6 +369,9 @@ class AgentState:
         # Track last file read for source extraction
         if tool == "read_file":
             self.last_file_read = args.get("path")
+            self.consecutive_reads += 1
+        else:
+            self.consecutive_reads = 0  # Reset on non-read_file calls
 
 
 def execute_tool_call(tool_call: dict[str, Any]) -> str:
@@ -513,6 +517,18 @@ def run_agentic_loop(question: str) -> dict[str, Any]:
                 "tool_calls": state.tool_calls_log,
                 "log": {}  # Empty log on success
             }
+
+        # Check if LLM is stuck in a loop reading files
+        # If it has read 4+ files consecutively without answering, add a hint to the history
+        if state.consecutive_reads >= 4:
+            print(f"LLM has read {state.consecutive_reads} files consecutively - adding hint to provide final answer", file=sys.stderr)
+            # Add a user message to prompt the LLM to answer
+            state.messages.append({
+                "role": "user",
+                "content": "You have now read enough files. Based on the list_files results and the files you've read, provide a COMPLETE FINAL ANSWER listing all the routers and their domains. Do not read any more files - just synthesize the information you have."
+            })
+            # Continue the loop - LLM will now respond with final answer
+            continue
 
         # Execute tool calls
         print(f"LLM requested {len(tool_calls)} tool call(s)", file=sys.stderr)
