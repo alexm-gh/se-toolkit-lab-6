@@ -112,7 +112,7 @@ TOOL_SCHEMAS = [
         "type": "function",
         "function": {
             "name": "query_api",
-            "description": "Call the backend API to query system data or get live information. Use this for questions about items count, analytics, system status, or HTTP status codes. Do NOT use for wiki documentation questions.",
+            "description": "Call the backend API to query system data or get live information. Use this FIRST for questions about API errors, HTTP status codes, items count, or analytics. For bug diagnosis questions, ALWAYS start with query_api to see the actual error, THEN read source code to understand the bug.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -122,7 +122,7 @@ TOOL_SCHEMAS = [
                     },
                     "path": {
                         "type": "string",
-                        "description": "API endpoint path (e.g., '/items/', '/analytics/completion-rate', '/health')"
+                        "description": "API endpoint path (e.g., '/items/', '/analytics/completion-rate', '/health', '/interactions/')"
                     },
                     "body": {
                         "type": "string",
