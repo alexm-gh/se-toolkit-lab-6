@@ -78,13 +78,13 @@ TOOL_SCHEMAS = [
         "type": "function",
         "function": {
             "name": "read_file",
-            "description": "Read a file from the project repository. Use this to examine file contents.",
+            "description": "Read a file from the project repository. Use this to examine file contents, documentation, or source code.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "path": {
                         "type": "string",
-                        "description": "Relative path from project root (e.g., 'wiki/git-workflow.md')"
+                        "description": "Relative path from project root (e.g., 'wiki/git-workflow.md', 'backend/app/main.py')"
                     }
                 },
                 "required": ["path"]
@@ -95,29 +95,57 @@ TOOL_SCHEMAS = [
         "type": "function",
         "function": {
             "name": "list_files",
-            "description": "List files and directories at a given path. Use this to discover what files exist.",
+            "description": "List files and directories at a given path. Use this to discover what files exist in a directory.",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "path": {
                         "type": "string",
-                        "description": "Relative directory path from project root (e.g., 'wiki')"
+                        "description": "Relative directory path from project root (e.g., 'wiki', 'backend/app/routers')"
                     }
                 },
                 "required": ["path"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "query_api",
+            "description": "Call the backend API to query system data or get live information. Use this for questions about items count, analytics, system status, or HTTP status codes. Do NOT use for wiki documentation questions.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "method": {
+                        "type": "string",
+                        "description": "HTTP method (GET, POST, PUT, DELETE, etc.)"
+                    },
+                    "path": {
+                        "type": "string",
+                        "description": "API endpoint path (e.g., '/items/', '/analytics/completion-rate', '/health')"
+                    },
+                    "body": {
+                        "type": "string",
+                        "description": "Optional JSON request body for POST/PUT requests (e.g., '{\"key\": \"value\"}')"
+                    }
+                },
+                "required": ["method", "path"]
             }
         }
     }
 ]
 
 # System prompt for the agentic loop
-SYSTEM_PROMPT = """You are a helpful documentation assistant. You have access to tools that let you read files and list directories in a project repository.
+SYSTEM_PROMPT = """You are a helpful documentation and system assistant. You have access to tools that let you:
+1. Read files and list directories in a project repository (for documentation and source code)
+2. Query the backend API for live system data
 
 When answering questions:
-1. Use list_files to discover what files exist
-2. Use read_file to examine file contents
-3. Always cite your source at the end of your answer in the format: Source: wiki/file.md#section-name
-4. If a section doesn't have an anchor, just use the file path
+- For wiki/documentation questions: Use list_files to discover files, then read_file to examine contents
+- For source code questions: Use read_file to read the relevant source files
+- For system facts (framework, ports, status codes) or data queries (item count, analytics): Use query_api to call the backend
+- Always cite your source at the end of your answer in the format: Source: wiki/file.md#section-name
+- If a section doesn't have an anchor, just use the file path
 
 Think step by step. Call tools when you need information, then use the results to answer."""
 
@@ -193,10 +221,78 @@ def list_files(path: str) -> str:
         return f"Error listing directory: {str(e)}"
 
 
+def query_api(method: str, path: str, body: str | None = None) -> str:
+    """Call the backend API.
+
+    Args:
+        method: HTTP method (GET, POST, etc.)
+        path: API endpoint path (e.g., '/items/')
+        body: Optional JSON request body for POST/PUT requests
+
+    Returns:
+        JSON string with status_code and body
+    """
+    api_key = os.environ.get("LMS_API_KEY", "")
+    base_url = os.environ.get("AGENT_API_BASE_URL", "http://localhost:42002")
+
+    if not api_key:
+        return json.dumps({
+            "status_code": 0,
+            "body": {"error": "LMS_API_KEY not configured in environment"}
+        })
+
+    url = f"{base_url}{path}"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+    }
+
+    print(f"  Calling API: {method} {url}...", file=sys.stderr)
+
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            if method.upper() == "GET":
+                response = client.get(url, headers=headers)
+            elif method.upper() == "POST":
+                headers["Content-Type"] = "application/json"
+                response = client.post(url, headers=headers, data=body or "{}")
+            elif method.upper() == "PUT":
+                headers["Content-Type"] = "application/json"
+                response = client.put(url, headers=headers, data=body or "{}")
+            elif method.upper() == "DELETE":
+                response = client.delete(url, headers=headers)
+            else:
+                return json.dumps({
+                    "status_code": 0,
+                    "body": {"error": f"Unsupported method: {method}"}
+                })
+    except httpx.TimeoutException:
+        return json.dumps({
+            "status_code": 0,
+            "body": {"error": "Request timed out"}
+        })
+    except httpx.RequestError as e:
+        return json.dumps({
+            "status_code": 0,
+            "body": {"error": f"Request failed: {str(e)}"}
+        })
+
+    # Return response with status_code and body
+    try:
+        response_body = response.json()
+    except json.JSONDecodeError:
+        response_body = response.text
+
+    return json.dumps({
+        "status_code": response.status_code,
+        "body": response_body
+    })
+
+
 # Dispatch dictionary for tool execution
 TOOLS_IMPL = {
     "read_file": read_file,
     "list_files": list_files,
+    "query_api": query_api,
 }
 
 
