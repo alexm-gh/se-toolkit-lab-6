@@ -156,7 +156,20 @@ When answering questions:
 - Always cite your source at the end of your answer in the format: Source: wiki/file.md#section-name
 - If a section doesn't have an anchor, just use the file path
 
-IMPORTANT: After you have gathered enough information (e.g., after list_files shows you all router files, or after reading 2-3 key files), STOP calling tools and provide a COMPLETE FINAL ANSWER. Do not keep reading files indefinitely.
+CRITICAL RULE: When asked to "list all" or describe multiple files, you must provide a FINAL ANSWER after gathering information. Do NOT keep reading files forever.
+
+Example workflow for "List all API routers":
+1. Call list_files('backend/app/routers') — get 6 files
+2. Read 2-3 representative files to understand the pattern
+3. STOP and provide a complete answer listing ALL routers with their domains
+
+Example answer format:
+"The backend has 5 API routers in backend/app/routers/:
+- items.py: handles item CRUD operations (GET /, POST /, GET /{id}, PUT /{id})
+- interactions.py: handles interaction logs (GET /, POST /)
+- analytics.py: handles analytics queries (GET /scores, /pass-rates, /timeline, /groups, /completion-rate, /top-learners)
+- learners.py: handles learner management
+- pipeline.py: handles ETL pipeline operations"
 
 Efficiency tips:
 - When asked to "list all" or "what domain does each handle", use list_files once, then read a few representative files, then synthesize a complete answer
