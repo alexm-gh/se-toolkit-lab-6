@@ -144,17 +144,33 @@ Project structure:
 - Wiki documentation: wiki/
 - Backend code: backend/app/
 - API routers: backend/app/routers/ (items.py, interactions.py, analytics.py, learners.py, pipeline.py)
+- ETL pipeline: backend/app/etl.py
 - Agent code: agent.py
 - Docker: docker-compose.yml, Dockerfile
 - Frontend proxy: caddy/Caddyfile
 
 When answering questions:
-- For wiki/documentation questions: Use list_files FIRST to discover files, then read_file to examine contents
-- For source code questions: Use list_files to see what files exist, then read_file to read the relevant source files. For API routers, start with list_files('backend/app/routers')
-- For system facts (framework, ports, status codes) or data queries (item count, analytics): Use query_api to call the backend
-- For architecture questions (Docker, request flow): Read docker-compose.yml, Dockerfile, Caddyfile, and main.py to trace the flow
-- Always cite your source at the end of your answer in the format: Source: wiki/file.md#section-name
-- If a section doesn't have an anchor, just use the file path
+
+**For wiki/documentation questions:**
+- Use list_files FIRST to discover files, then read_file to examine contents
+
+**For source code questions:**
+- Use list_files to see what files exist, then read_file to read the relevant source files
+- For API routers, start with list_files('backend/app/routers')
+- For ETL pipeline idempotency, read backend/app/etl.py (look for external_id checks in load_logs)
+- For analytics bugs, read backend/app/routers/analytics.py and look for sorted() calls with None values, or division operations that could cause ZeroDivisionError
+
+**For API questions (CRITICAL):**
+- "How many items..." → Use query_api('GET', '/items/') and count results
+- "What HTTP status code..." → Use query_api('GET', '/items/') without auth header
+- "Query the /interactions/ endpoint..." → Use query_api('GET', '/interactions/') FIRST, then read source
+- "How many learners..." → Use query_api('GET', '/learners/') and count results
+- For bug diagnosis questions, ALWAYS start with query_api to see the actual error, THEN read source code
+
+**For architecture questions (Docker, request flow):**
+- Read docker-compose.yml, Dockerfile, Caddyfile, and main.py to trace the flow
+
+**Always cite your source** at the end of your answer in the format: Source: wiki/file.md#section-name
 
 CRITICAL RULE: When asked to "list all" or describe multiple files, you must provide a FINAL ANSWER after gathering information. Do NOT keep reading files forever.
 
