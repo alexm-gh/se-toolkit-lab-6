@@ -95,7 +95,7 @@ TOOL_SCHEMAS = [
         "type": "function",
         "function": {
             "name": "list_files",
-            "description": "List files and directories at a given path. Use this to discover what files exist in a directory.",
+            "description": "List files and directories at a given path. Use this FIRST to discover what files exist in a directory before reading them. For example, to find API routers, call list_files('backend/app/routers') to see all router files.",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -149,8 +149,8 @@ Project structure:
 - Frontend proxy: caddy/Caddyfile
 
 When answering questions:
-- For wiki/documentation questions: Use list_files to discover files, then read_file to examine contents
-- For source code questions: Use read_file to read the relevant source files. For API routers, check backend/app/routers/
+- For wiki/documentation questions: Use list_files FIRST to discover files, then read_file to examine contents
+- For source code questions: Use list_files to see what files exist, then read_file to read the relevant source files. For API routers, start with list_files('backend/app/routers')
 - For system facts (framework, ports, status codes) or data queries (item count, analytics): Use query_api to call the backend
 - For architecture questions (Docker, request flow): Read docker-compose.yml, Dockerfile, Caddyfile, and main.py to trace the flow
 - Always cite your source at the end of your answer in the format: Source: wiki/file.md#section-name
