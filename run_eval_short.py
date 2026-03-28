@@ -288,7 +288,7 @@ def main():
         return
 
     # Full run mode — run only selected questions (indices 4, 7, 9, 10)
-    selected_indices = [4, 7, 9, 10]
+    selected_indices = [3, 6, 8, 9]
     passed = 0
     total_attempted = len(selected_indices)
 
