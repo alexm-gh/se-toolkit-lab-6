@@ -132,3 +132,70 @@ def test_log_structure_on_success() -> None:
     # Assert log is a dict (empty on success)
     assert isinstance(output["log"], dict), "'log' should be a dict"
     assert output["log"] == {}, "Log should be empty dict on success"
+
+
+def test_agent_uses_query_api_for_data_question() -> None:
+    """Test that agent.py uses query_api tool when asked about database items."""
+    project_root = Path(__file__).parent.parent
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "agent.py",
+            "How many items are currently stored in the database? Query the running API to find out.",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        cwd=project_root,
+    )
+
+    assert result.returncode == 0, f"Agent failed with: {result.stderr}"
+
+    output = json.loads(result.stdout)
+
+    # Assert tool_calls is not empty (agent should query API)
+    assert len(output["tool_calls"]) > 0, "Expected agent to use at least one tool"
+
+    # Assert query_api was used
+    tools_used = [call["tool"] for call in output["tool_calls"]]
+    assert "query_api" in tools_used, f"Expected agent to use query_api tool, got: {tools_used}"
+
+    # Assert log is a dict (empty on success)
+    assert isinstance(output["log"], dict), "'log' should be a dict"
+
+
+def test_agent_uses_read_file_for_source_code_question() -> None:
+    """Test that agent.py uses read_file tool when asked about the backend framework."""
+    project_root = Path(__file__).parent.parent
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "agent.py",
+            "What Python web framework does this project's backend use? Read the source code to find out.",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=60,
+        cwd=project_root,
+    )
+
+    assert result.returncode == 0, f"Agent failed with: {result.stderr}"
+
+    output = json.loads(result.stdout)
+
+    # Assert tool_calls is not empty (agent should read source code)
+    assert len(output["tool_calls"]) > 0, "Expected agent to use at least one tool"
+
+    # Assert read_file was used (not query_api for source code question)
+    tools_used = [call["tool"] for call in output["tool_calls"]]
+    assert "read_file" in tools_used, f"Expected agent to use read_file tool, got: {tools_used}"
+
+    # Assert answer contains FastAPI
+    assert "fastapi" in output["answer"].lower(), (
+        f"Expected answer to contain 'FastAPI', got: {output['answer']}"
+    )
+
+    # Assert log is a dict (empty on success)
+    assert isinstance(output["log"], dict), "'log' should be a dict"
