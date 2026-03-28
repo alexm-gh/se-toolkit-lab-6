@@ -156,8 +156,10 @@ When answering questions:
 - Always cite your source at the end of your answer in the format: Source: wiki/file.md#section-name
 - If a section doesn't have an anchor, just use the file path
 
+IMPORTANT: After you have gathered enough information (e.g., after list_files shows you all router files, or after reading 2-3 key files), STOP calling tools and provide a COMPLETE FINAL ANSWER. Do not keep reading files indefinitely.
+
 Efficiency tips:
-- When multiple files are needed (e.g., docker-compose.yml, Dockerfile, Caddyfile), read them one by one but synthesize the answer after reading all of them
+- When asked to "list all" or "what domain does each handle", use list_files once, then read a few representative files, then synthesize a complete answer
 - Don't make unnecessary tool calls — if you have enough information, provide the final answer
 - For "explain the journey" questions, trace: Caddy (proxy) → FastAPI (app) → auth → router → ORM → PostgreSQL
 
