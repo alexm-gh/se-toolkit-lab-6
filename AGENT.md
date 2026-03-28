@@ -213,7 +213,7 @@ to LLM
 - **HTTP Client:** `httpx` with 60-second timeout for LLM, 30-second for API
 - **Endpoint:** `POST {LLM_API_BASE}/chat/completions`
 - **Request Format:** OpenAI-compatible with `tools` parameter
-- **Max Tool Calls:** 10 per question
+- **Max Tool Calls:** 15 per question (increased for complex architecture questions)
 - **Message History:** Tracks `system`, `user`, `assistant`, and `tool` roles
 
 ## Tools

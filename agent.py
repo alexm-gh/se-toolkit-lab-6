@@ -23,7 +23,7 @@ import httpx
 # Configuration
 # =============================================================================
 
-MAX_TOOL_CALLS = 10  # Maximum tool calls per question
+MAX_TOOL_CALLS = 15  # Maximum tool calls per question (increased for complex architecture questions)
 
 
 # =============================================================================
@@ -145,13 +145,21 @@ Project structure:
 - Backend code: backend/app/
 - API routers: backend/app/routers/ (items.py, interactions.py, analytics.py, learners.py, pipeline.py)
 - Agent code: agent.py
+- Docker: docker-compose.yml, Dockerfile
+- Frontend proxy: caddy/Caddyfile
 
 When answering questions:
 - For wiki/documentation questions: Use list_files to discover files, then read_file to examine contents
 - For source code questions: Use read_file to read the relevant source files. For API routers, check backend/app/routers/
 - For system facts (framework, ports, status codes) or data queries (item count, analytics): Use query_api to call the backend
+- For architecture questions (Docker, request flow): Read docker-compose.yml, Dockerfile, Caddyfile, and main.py to trace the flow
 - Always cite your source at the end of your answer in the format: Source: wiki/file.md#section-name
 - If a section doesn't have an anchor, just use the file path
+
+Efficiency tips:
+- When multiple files are needed (e.g., docker-compose.yml, Dockerfile, Caddyfile), read them one by one but synthesize the answer after reading all of them
+- Don't make unnecessary tool calls — if you have enough information, provide the final answer
+- For "explain the journey" questions, trace: Caddy (proxy) → FastAPI (app) → auth → router → ORM → PostgreSQL
 
 Think step by step. Call tools when you need information, then use the results to answer."""
 

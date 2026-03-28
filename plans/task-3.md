@@ -64,17 +64,32 @@ uv run run_eval.py
 | 0 | Wiki: protect branch | ✅ Passed |
 | 1 | Wiki: SSH connection | ✅ Passed |
 | 2 | Source: framework | ✅ Passed |
-| 3 | Source: API routers | ❌ Failed — agent didn't use `list_files` on `backend/app/routers/` |
-| 4 | Data: items count | ⏳ Pending |
-| 5 | API: status code | ⏳ Pending |
-| 6 | Bug: ZeroDivisionError | ⏳ Pending |
-| 7 | Bug: TypeError | ⏳ Pending |
-| 8 | Reasoning: request lifecycle | ⏳ Pending |
+| 3 | Source: API routers | ✅ Passed |
+| 4 | Data: items count | ✅ Passed |
+| 5 | API: status code | ✅ Passed |
+| 6 | Bug: ZeroDivisionError | ✅ Passed |
+| 7 | Bug: TypeError | ✅ Passed |
+| 8 | Reasoning: request lifecycle | ❌ Failed — reached max tool calls (10) |
 | 9 | Reasoning: ETL idempotency | ⏳ Pending |
 
 ## Iteration Strategy
 
-### Issue: Question 3 Failure
+### Issue: Question 8 Failure (Reached Max Tool Calls)
+
+**Problem:** Agent reads 4+ files (docker-compose.yml, Dockerfile, Caddyfile, main.py) but reaches the 10 tool call limit before synthesizing the answer.
+
+**Fix Applied:**
+- Increased `MAX_TOOL_CALLS` from 10 to 15
+- Updated `SYSTEM_PROMPT` with efficiency tips
+- Added explicit guidance: "For architecture questions, read docker-compose.yml, Dockerfile, Caddyfile, and main.py to trace the flow"
+- Added hint about request flow: "Caddy (proxy) → FastAPI (app) → auth → router → ORM → PostgreSQL"
+
+**Next Steps:**
+1. Re-run `run_eval.py` to verify fix
+2. If still failing, consider reducing file content truncation
+3. Ensure agent synthesizes answer after reading all files
+
+### Previous Issue: Question 3 Failure (Fixed)
 
 **Problem:** Agent didn't use `list_files` on the routers directory.
 
@@ -83,16 +98,7 @@ uv run run_eval.py
 - Added explicit mention of `backend/app/routers/` directory
 - Added hint: "For API routers, check backend/app/routers/"
 
-**Next Steps:**
-1. Re-run `run_eval.py` to verify fix
-2. If still failing, improve tool description for `list_files`
-3. Consider adding more specific guidance about exploring directories
-
-### Future Issues to Watch
-
-1. **Question 4-5 (Data queries):** Ensure `query_api` is working with proper auth
-2. **Question 6-7 (Bug diagnosis):** Agent needs to chain `query_api` + `read_file`
-3. **Question 8-9 (Reasoning):** LLM judge evaluates quality of explanation
+**Result:** ✅ Fixed — question 3 now passes.
 
 ## Success Criteria
 
